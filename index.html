@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOMBAY SPECIAL CHART</title>
+    <style>
+        :root { --gold: #ffcc00; --cyan: #00ffff; --bg: #000; }
+        body { background: var(--bg); color: #fff; font-family: 'Arial', sans-serif; margin: 0; padding: 0; text-align: center; }
+        
+        .header { background: #111; padding: 15px; border-bottom: 2px solid var(--gold); margin-bottom: 10px; }
+        h1 { color: var(--gold); margin: 0; font-size: 22px; text-transform: uppercase; }
+
+        #adminPanel { display: none; background: #1a1a1a; border: 2px solid var(--gold); margin: 10px; padding: 15px; border-radius: 10px; }
+        .admin-row { display: flex; justify-content: center; gap: 5px; margin-bottom: 10px; }
+        .admin-row input { padding: 8px; border-radius: 5px; border: 1px solid var(--gold); background: #000; color: #fff; text-align: center; width: 65px; }
+        
+        .week-row { display: flex; width: 98%; margin: 5px auto; background: #111; border: 1.5px solid #444; border-radius: 5px; overflow: hidden; min-height: 85px; }
+        .date-box { 
+            width: 45px; background: var(--cyan); color: #000; font-size: 10px; font-weight: bold; 
+            display: flex; align-items: center; justify-content: center; 
+            writing-mode: vertical-lr; transform: rotate(180deg); border-right: 1px solid #000;
+        }
+        .grid { display: flex; flex: 1; background: #000; gap: 2px; padding: 2px; }
+        .cell { flex: 1; border: 1px solid #333; background: #1a1a1a; display: flex; align-items: center; justify-content: space-between; padding: 3px; position: relative; }
+        
+        .panna { display: flex; flex-direction: column; font-size: 9px; color: #aaa; font-weight: bold; line-height: 1.2; }
+        .jodi { flex: 1; font-size: 18px; font-weight: bold; text-align: center; }
+        .lock-cell { background: #0a0a0a; color: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 18px; border: 1px dashed #444; }
+        .empty-cell { background: #050505; }
+        
+        .red { color: #ff3333; }
+        .white { color: #fff; }
+
+        .card { background: #111; border: 1px solid var(--gold); margin: 15px; padding: 20px; border-radius: 12px; }
+        .btn { padding: 12px 20px; background: var(--gold); border: none; font-weight: bold; cursor: pointer; border-radius: 5px; margin: 5px; color: #000; }
+        input[type="text"], input[type="number"] { padding: 12px; margin: 8px; width: 85%; border-radius: 5px; border: 1px solid #444; background: #222; color: #fff; }
+        
+        /* Scanner Styling */
+        .qr-container { margin: 15px auto; width: 250px; height: 250px; border: 4px solid #fff; border-radius: 10px; overflow: hidden; background: #fff; }
+        .qr-img { width: 100%; height: 100%; object-fit: contain; }
+        
+        .login-btn { color: #222; font-size: 10px; cursor: pointer; margin-top: 50px; display: block; padding: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="header"><h1>BOMBAY SPECIAL CHART</h1></div>
+
+<div id="adminPanel">
+    <h3 style="color:var(--gold)">नया नंबर अपडेट करें</h3>
+    <input type="text" id="targetDate" placeholder="हफ्ते की तारीख (जैसे: 06-04 to 11-04)" style="width:85%"><br>
+    <div class="admin-row">
+        <input type="number" id="l_pan" placeholder="L-Pan">
+        <input type="number" id="jodi" placeholder="Jodi">
+        <input type="number" id="r_pan" placeholder="R-Pan">
+    </div>
+    <button class="btn" onclick="updateNumber()">चार्ट अपडेट करें</button>
+    <button class="btn" style="background:red; color:white;" onclick="clearData()">सब डिलीट करें</button>
+    <button class="btn" style="background:#444; color:white;" onclick="hideAdmin()">Close</button>
+</div>
+
+<div id="chartArea"></div>
+
+<div class="card" id="unlockCard">
+    <h2 style="color:var(--gold)">🔒 UNLOCK FULL CHART</h2>
+    <p>VIP चार्ट देखने के लिए नीचे क्लिक करें</p>
+    <button class="btn" onclick="showForm()">UNLOCK NOW</button>
+</div>
+
+<div class="card" id="formBox" style="display:none;">
+    <input type="text" id="u_name" placeholder="अपना नाम लिखें"><br>
+    <input type="number" id="u_mobile" placeholder="मोबाइल नंबर"><br>
+    <button class="btn" onclick="showPayment()">पेमेंट की जानकारी देखें</button>
+</div>
+
+<div class="card" id="payBox" style="display:none;">
+    <h2 style="color:var(--gold)">Scan & Pay</h2>
+    
+    <div class="qr-container">
+        <img src="phonpe-qr.jpeg.jpeg" class="qr-img" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=omkaryadavsonu8888-1@oksbi&pn=Omkar%20Yadav'">
+    </div>
+    
+    <h2 style="color:var(--gold); margin: 5px 0;">Omkar Yadav</h2>
+    <p style="margin-top: 0; color: #aaa;">UPI ID: omkaryadavsonu8888-1@oksbi</p>
+    
+    <div style="margin:10px 0;">
+        <button class="btn" onclick="setPlan('7 Days - 1299')">7 Days</button>
+        <button class="btn" onclick="setPlan('30 Days - 1999')">30 Days</button>
+    </div>
+    <p id="selPlan" style="color:var(--cyan); font-weight:bold;"></p>
+    <input type="text" id="utr" placeholder="Enter Transaction ID (UTR)"><br>
+    <button class="btn" style="background:#25D366; color:white;" onclick="sendToWA()">व्हाट्सएप पर सबमिट करें</button>
+</div>
+
+<span class="login-btn" onclick="askAdmin()">Admin Login</span>
+
+<script>
+    const MY_WA = "918103982813";
+    let chartData = JSON.parse(localStorage.getItem('bombay_v5_data')) || [];
+    let selectedPlan = "";
+
+    function askAdmin() { if(prompt("Pin:") === "123") document.getElementById('adminPanel').style.display='block'; }
+    function hideAdmin() { document.getElementById('adminPanel').style.display='none'; }
+
+    function updateNumber() {
+        let date = document.getElementById('targetDate').value;
+        let l = document.getElementById('l_pan').value;
+        let j = document.getElementById('jodi').value;
+        let r = document.getElementById('r_pan').value;
+        if(!date || !l || !j || !r) { alert("पूरी जानकारी भरें!"); return; }
+
+        let weekIndex = chartData.findIndex(w => w.dateRange === date);
+        if(weekIndex === -1) {
+            chartData.push({ dateRange: date, days: [{l, j, r}] });
+        } else {
+            if(chartData[weekIndex].days.length < 6) {
+                chartData[weekIndex].days.push({l, j, r});
+            } else {
+                alert("हफ्ता पूरा हो गया है!");
+            }
+        }
+        localStorage.setItem('bombay_v5_data', JSON.stringify(chartData));
+        location.reload();
+    }
+
+    function render() {
+        let area = document.getElementById('chartArea');
+        area.innerHTML = "";
+        chartData.forEach(week => {
+            let html = `<div class="week-row"><div class="date-box">${week.dateRange}</div><div class="grid">`;
+            let lockPlaced = false;
+            for(let i=0; i<6; i++) {
+                let day = week.days[i];
+                if(day) {
+                    let color = (i % 2 !== 0) ? 'red' : 'white';
+                    let p1 = day.l.toString().split("");
+                    let p2 = day.r.toString().split("");
+                    html += `<div class="cell">
+                        <div class="panna"><div>${p1[0]}</div><div>${p1[1]}</div><div>${p1[2]}</div></div>
+                        <div class="jodi ${color}">${day.j}</div>
+                        <div class="panna"><div>${p2[0]}</div><div>${p2[1]}</div><div>${p2[2]}</div></div>
+                    </div>`;
+                } else if (!lockPlaced) {
+                    html += `<div class="cell lock-cell">🔒</div>`;
+                    lockPlaced = true;
+                } else {
+                    html += `<div class="cell empty-cell"></div>`;
+                }
+            }
+            html += `</div></div>`;
+            area.innerHTML += html;
+        });
+    }
+
+    function showForm() { document.getElementById('formBox').style.display='block'; document.getElementById('unlockCard').style.display='none'; }
+    function showPayment() {
+        if(!document.getElementById('u_name').value || !document.getElementById('u_mobile').value) { alert("नाम और नंबर भरें!"); return; }
+        document.getElementById('payBox').style.display='block';
+        document.getElementById('formBox').style.display='none';
+    }
+    function setPlan(p) { selectedPlan = p; document.getElementById('selPlan').innerText = "चयनित प्लान: " + p; }
+    function sendToWA() {
+        let name = document.getElementById('u_name').value;
+        let utr = document.getElementById('utr').value;
+        if(!utr || !selectedPlan) { alert("प्लान चुनें और UTR भरें!"); return; }
+        window.open(`https://wa.me/${MY_WA}?text=VIP_UNBLOCK%0AName: ${name}%0APlan: ${selectedPlan}%0AUTR: ${utr}`);
+    }
+    function clearData() { if(confirm("सब डिलीट करें?")) { localStorage.removeItem('bombay_v5_data'); location.reload(); } }
+    render();
+</script>
+</body>
+</html>
